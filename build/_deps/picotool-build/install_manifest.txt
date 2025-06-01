@@ -1,5 +1,0 @@
-/home/alvaro/Documentos/repos/raspi_alarm_clock/build/_deps/picotool/picotool
-/home/alvaro/Documentos/repos/raspi_alarm_clock/build/_deps/picotool/picotoolTargets.cmake
-/home/alvaro/Documentos/repos/raspi_alarm_clock/build/_deps/picotool/picotoolTargets-release.cmake
-/home/alvaro/Documentos/repos/raspi_alarm_clock/build/_deps/picotool/picotoolConfig.cmake
-/home/alvaro/Documentos/repos/raspi_alarm_clock/build/_deps/picotool/picotoolConfigVersion.cmake
