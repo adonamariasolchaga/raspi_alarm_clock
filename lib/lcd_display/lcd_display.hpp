@@ -3,6 +3,10 @@
 #define BLINK true
 #define NO_BLINK false
 
+#include "pico/stdlib.h"
+#include "hardware/pwm.h"
+#include "pico/time.h"
+
 class LCDdisplay {
 	
 	private:

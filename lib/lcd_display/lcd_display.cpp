@@ -1,6 +1,3 @@
-#include "pico/stdlib.h"
-#include "hardware/pwm.h"
-#include "pico/time.h"
 #include "lcd_display.hpp"
 
 // Pin positions in LCDpins array
