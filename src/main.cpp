@@ -1,13 +1,13 @@
 #include "lcd_display.hpp"
+#include "lcd_app.hpp"
 
-LCDdisplay myLCD(2, 3, 4, 5, 14, 15, 16, 2); // DB4, DB5, DB6, DB7, RS, E, character_width, no_of_lines
+int main() {
+    LCDdisplay lcd(2, 3, 4, 5, 14, 15, 16, 2);
+    lcd.init();
 
-int main()
-{
-	myLCD.init();
-	myLCD.clear();
-	myLCD.cursor_off();
-	myLCD.print_wrapped("AAAAAAAAAA");
+    LCDApp app(lcd);
+    app.run();
 
-	return 0;
-};
+    return 0;
+}
+

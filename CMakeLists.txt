@@ -8,12 +8,13 @@ pico_sdk_init()
 
 add_executable(alarm_clock
     src/main.cpp
-    lib/lcd_display/lcd_display.cpp
+    lib/lcd_display.cpp
+    lib/lcd_app.cpp
 )
 
 target_include_directories(alarm_clock PRIVATE
     src
-    lib/lcd_display
+    lib
 )
 
 target_link_libraries(alarm_clock
