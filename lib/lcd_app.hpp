@@ -19,5 +19,5 @@ public:
 private:
     LCDdisplay& lcd;
     View currentView;
-    void render();
+    void render(const char* buf);
 }; 

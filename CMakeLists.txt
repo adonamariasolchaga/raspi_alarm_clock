@@ -10,6 +10,7 @@ add_executable(alarm_clock
     src/main.cpp
     lib/lcd_display.cpp
     lib/lcd_app.cpp
+    lib/time_utils.cpp
 )
 
 target_include_directories(alarm_clock PRIVATE
@@ -22,7 +23,7 @@ target_link_libraries(alarm_clock
     pico_time
     hardware_spi
     hardware_pwm
+    hardware_rtc
 )
 
 pico_add_extra_outputs(alarm_clock)
-
