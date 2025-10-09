@@ -1,5 +1,9 @@
 #pragma once
 #include "lcd_display.hpp"
+#include "time_utils.hpp"
+#include "views.hpp"
+#include <map>
+#include <memory>
 
 // Enum for different views/screens
 enum class View {
@@ -7,17 +11,18 @@ enum class View {
     Menu,
     SetAlarm,
     AlarmList,
-    // Add more as needed
 };
 
-class LCDApp {
+class AlarmApp {
 public:
-    LCDApp(LCDdisplay& display);
+    AlarmApp(LCDdisplay& display, TimeUtils& clock);
     void run();
     void setView(View v);
 
 private:
     LCDdisplay& lcd;
     View currentView;
-    void render(const char* buf);
-}; 
+    TimeUtils& clock;
+    std::map<View, std::unique_ptr<IView>> views;
+    void render();
+};

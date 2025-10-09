@@ -3,6 +3,9 @@
 
 class TimeUtils {
 public:
-    static void init();
-    static datetime_t now();
+    TimeUtils(int year, int month, int day, int hour, int min, int sec);
+    datetime_t now();
+
+private:
+    datetime_t current_time;
 };
