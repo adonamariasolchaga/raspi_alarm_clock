@@ -3,16 +3,19 @@
 #include "pico/stdlib.h"
 
 
-AlarmApp::AlarmApp(LCDdisplay& display, TimeUtils& clock) : lcd(display), currentView(View::Home), clock(clock) {
+AlarmApp::AlarmApp(LCDdisplay& display, TimeUtils& clock, ButtonManager& buttons) : lcd(display), currentView(View::Home), clock(clock), buttons(buttons) {
     views[View::Home] = std::make_unique<HomeView>();
     views[View::Menu] = std::make_unique<MenuView>();
 }
 
 void AlarmApp::run() {
-    int counter = 0;
-
     while (true) {
         render();
+        if (buttons.is_pressedU()) {
+            setView(View::Home);
+        } else {
+            setView(View::Menu);
+        }
 
         // Simulate view changes for demonstration purposes
         // counter++;
@@ -31,6 +34,5 @@ void AlarmApp::setView(View v) {
 }
 
 void AlarmApp::render() {
-    lcd.clear();
     views[currentView]->render(lcd, clock);
 }

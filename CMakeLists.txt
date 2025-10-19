@@ -12,6 +12,7 @@ add_executable(alarm_clock
     lib/alarm_manager.cpp
     lib/time_utils.cpp
     lib/views.cpp
+    lib/button_manager.cpp
 )
 
 target_include_directories(alarm_clock PRIVATE

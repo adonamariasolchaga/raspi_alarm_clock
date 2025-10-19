@@ -8,7 +8,7 @@
 #include "pico/time.h"
 
 class LCDdisplay {
-	
+
 	private:
 	int LCDpins[6];
 	uint bl_pwm_pin = 255;
