@@ -28,4 +28,5 @@ target_link_libraries(alarm_clock
     hardware_rtc
 )
 
+
 pico_add_extra_outputs(alarm_clock)

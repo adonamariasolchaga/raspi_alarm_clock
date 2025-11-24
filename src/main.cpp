@@ -12,7 +12,7 @@ int main() {
     TimeUtils myClock(2025, 10, 9, 12, 0, 0);
 
     // Create the button manager object
-    ButtonManager buttons(10, 11, 12, 13, 16);
+    ButtonManager buttons(9, 10, 11, 12, 13);
     buttons.init();
 
     // Create and run the alarm application
