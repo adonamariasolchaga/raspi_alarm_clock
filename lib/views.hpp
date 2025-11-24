@@ -2,6 +2,8 @@
 #include "lcd_display.hpp"
 #include "time_utils.hpp"
 #include <cstdio>
+#include <functional>
+#include <vector>
 
 // Forward declaration
 class ButtonManager;
@@ -17,19 +19,38 @@ class IView {
 public:
     virtual ~IView() = default;
     virtual void render(LCDdisplay& lcd, TimeUtils& clock) = 0;
-    virtual View handleInput(ButtonManager& buttons);
+    virtual void handleInput(ButtonManager& buttons) = 0;
 };
 
+// ----------------- HomeView -----------------
 class HomeView : public IView {
+private:
+    LCDdisplay* lcdPtr;
 public:
+    HomeView(LCDdisplay* lcd) : lcdPtr(lcd) {}
     void render(LCDdisplay& lcd, TimeUtils& clock) override;
-    View handleInput(ButtonManager& buttons) override;
+    void handleInput(ButtonManager& buttons) override;
 };
 
-class MenuView : public IView {
+
+// ----------------- ScrollableMenuView -----------------
+struct MenuOption {
+    const char* label;
+    std::function<void()> action;
+};
+
+class ScrollableMenuView : public IView {
 private:
-    int selected = 0; // 0 = Set Alarm, 1 = List Alarms
+    LCDdisplay* lcdPtr;
+    std::vector<MenuOption> options;
+    int cursorIndex = 0;
+    int firstVisibleIndex = 0;
+    int noLines;
 public:
+    ScrollableMenuView(LCDdisplay* lcd, std::vector<MenuOption> opts, int lines)
+        : lcdPtr(lcd), options(opts), noLines(lines) {}
     void render(LCDdisplay& lcd, TimeUtils& clock) override;
-    View handleInput(ButtonManager& buttons) override;
+    void handleInput(ButtonManager& buttons) override;
+    int getCursorIndex() const { return cursorIndex; }
+    void setCursorIndex(int idx) { cursorIndex = idx; }
 };

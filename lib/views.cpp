@@ -1,57 +1,72 @@
 #include "views.hpp"
 #include "button_manager.hpp"
 
-View IView::handleInput(ButtonManager& buttons) {
-    return View::Home;
-}
 
+// ----------------- HomeView -----------------
 void HomeView::render(LCDdisplay& lcd, TimeUtils& clock) {
     lcd.clear();
-
-    char buf[10];
     datetime_t current = clock.now();
-    snprintf(buf, sizeof(buf), "%02d:%02d:%02d",
-             current.hour, current.min, current.sec);
+    char buf[10];
+    snprintf(buf, sizeof(buf), "%02d:%02d:%02d", current.hour, current.min, current.sec);
 
-    lcd.goto_pos(4, 0);
+    lcd.goto_pos(4,0);
     lcd.print(buf);
 
+    // Botón "M" para acceder al menú
     lcd.goto_pos(15, 1);
     lcd.print("M");
-}
-View HomeView::handleInput(ButtonManager& buttons) {
-    if (buttons.is_pressedU())
-        return View::Menu;
-    return View::Home;
+    // Cursor delante de "M"
+    lcd.goto_pos(14, 1);
+    lcd.print(">");
 }
 
-void MenuView::render(LCDdisplay& lcd, TimeUtils& clock) {
+void HomeView::handleInput(ButtonManager& buttons) {
+    if (buttons.is_pressedC()) {
+        // Acceso al menú (se puede cambiar la vista desde AlarmApp)
+    }
+}
+
+// ----------------- ScrollableMenuView -----------------
+void ScrollableMenuView::render(LCDdisplay& lcd, TimeUtils& clock) {
     lcd.clear();
+    for (int i = 0; i < noLines; ++i) {
+        int optIndex = firstVisibleIndex + i;
+        if (optIndex >= options.size()) break;
+        lcd.goto_pos(0, i);
+        if (optIndex == cursorIndex) lcd.print(">"); else lcd.print(" ");
+        lcd.print(options[optIndex].label);
+    }
 
-    lcd.goto_pos(0, 0);
-    lcd.print(selected == 0 ? "> Set Alarm" : "  Set Alarm");
-
-    lcd.goto_pos(0, 1);
-    lcd.print(selected == 1 ? "> List Alarms" : "  List Alarms");
+    // Indicadores de scroll
+    if (firstVisibleIndex > 0) {
+        lcd.goto_pos(15, 0);
+        lcd.print("^");
+    }
+    if (firstVisibleIndex + noLines < options.size()) {
+        lcd.goto_pos(15, noLines - 1);
+        lcd.print("v");
+    }
 }
 
-View MenuView::handleInput(ButtonManager& buttons) {
-    if (buttons.is_pressedU()) {
-        selected = (selected - 1 + 2) % 2;
+void ScrollableMenuView::handleInput(ButtonManager& buttons) {
+    bool moved = false;
+    if (buttons.is_pressedU() && cursorIndex > 0) {
+        cursorIndex--;
+        moved = true;
+    }
+    if (buttons.is_pressedD() && cursorIndex < options.size() - 1) {
+        cursorIndex++;
+        moved = true;
     }
 
-    if (buttons.is_pressedD()) {
-        selected = (selected + 1) % 2;
-    }
-
-    if (buttons.is_pressedL()) {
-        return View::Home; // volver al home
-    }
+    // Ajustar scroll
+    if (cursorIndex < firstVisibleIndex) firstVisibleIndex = cursorIndex;
+    if (cursorIndex >= firstVisibleIndex + noLines) firstVisibleIndex = cursorIndex - noLines + 1;
 
     if (buttons.is_pressedC()) {
-        if (selected == 0) return View::CreateAlarm;
-        if (selected == 1) return View::ListAlarms;
+        if (options[cursorIndex].action) options[cursorIndex].action();
+        moved = true;
     }
 
-    return View::Menu;
+    if (moved) render(*lcdPtr, *(new TimeUtils(2025,10,9,12,0,0)));
 }
