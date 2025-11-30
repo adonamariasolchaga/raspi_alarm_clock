@@ -15,9 +15,25 @@ TimeUtils::TimeUtils(int year, int month, int day, int hour, int min, int sec) {
     rtc_set_datetime(&current_time);
 }
 
-
 datetime_t TimeUtils::now() {
     datetime_t t;
     rtc_get_datetime(&t);
     return t;
+}
+
+void TimeUtils::addAlarm(int hour, int minute) {
+    alarms.push_back({hour, minute});
+}
+
+const std::vector<Alarm>& TimeUtils::getAlarms() const {
+    return alarms;
+}
+
+bool TimeUtils::checkAlarmTrigger(const datetime_t& t) const {
+    for (const auto& a : alarms) {
+        if (t.hour == a.hour && t.min == a.minute) {
+            return true;
+        }
+    }
+    return false;
 }

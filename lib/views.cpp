@@ -60,13 +60,107 @@ void ScrollableMenuView::handleInput(ButtonManager& buttons) {
     }
 
     // Ajustar scroll
-    if (cursorIndex < firstVisibleIndex) firstVisibleIndex = cursorIndex;
+    if (cursorIndex < firstVisibleIndex)  firstVisibleIndex = cursorIndex;
     if (cursorIndex >= firstVisibleIndex + noLines) firstVisibleIndex = cursorIndex - noLines + 1;
 
     if (buttons.is_pressedC()) {
         if (options[cursorIndex].action) options[cursorIndex].action();
-        moved = true;
     }
 
-    if (moved) render(*lcdPtr, *(new TimeUtils(2025,10,9,12,0,0)));
+    if (moved) updateFlag = true;
+}
+
+void CreateAlarmView::render(LCDdisplay& lcd, TimeUtils& clock) {
+    lcd.clear();
+
+    // There are 4 items: 0=Hour, 1=Minute, 2=Save, 3=Cancel
+    const int totalItems = 4;
+
+    // Determine which two items are visible
+    int firstVisible = 0;
+
+    if (cursorIndex > 1)
+        firstVisible = cursorIndex - 1;
+
+    char line[16];
+
+    for (int row = 0; row < 2; ++row) {
+        int item = firstVisible + row;
+        if (item >= totalItems) break;
+
+        lcd.goto_pos(0, row);
+        lcd.print(item == cursorIndex ? ">" : " ");
+
+        switch(item) {
+            case 0:
+                snprintf(line, sizeof(line), "Hour: %02d", hour);
+                lcd.print(line);
+                break;
+
+            case 1:
+                snprintf(line, sizeof(line), "Minute: %02d", minute);
+                lcd.print(line);
+                break;
+
+            case 2:
+                lcd.print("[Save]");
+                break;
+
+            case 3:
+                lcd.print("[Cancel]");
+                break;
+        }
+    }
+
+    // ---- SCROLL ARROWS ----
+    
+    // Up arrow (^)
+    if (firstVisible > 0) {
+        lcd.goto_pos(15, 0);
+        lcd.print("^");
+    }
+
+    // Down arrow (v)
+    if (firstVisible + 2 < totalItems) {
+        lcd.goto_pos(15, 1);
+        lcd.print("v");
+    }
+}
+
+void CreateAlarmView::handleInput(ButtonManager& buttons) {
+    bool changed = false;
+    
+    if (buttons.is_pressedU() && cursorIndex > 0){
+        cursorIndex--;
+        changed = true;
+    }
+
+    if (buttons.is_pressedD() && cursorIndex < 3){
+        cursorIndex++;
+        changed = true;
+    }
+
+    if (cursorIndex == 0) {          // Hour
+        if (buttons.is_pressedR()) {hour = (hour + 1) % 24; changed = true;}
+        if (buttons.is_pressedL()) {hour = (hour + 23) % 24; changed = true;}
+    }
+
+    if (cursorIndex == 1) {          // Minute
+        if (buttons.is_pressedR()) {minute = (minute + 1) % 60; changed = true;}
+        if (buttons.is_pressedL()) {minute = (minute + 59) % 60; changed = true;}
+    }
+
+    if (buttons.is_pressedC()) {
+        if (cursorIndex == 2) {
+            // SAVE
+            saveRequested = true;
+        }
+        if (cursorIndex == 3) {
+            // CANCEL
+            cancelRequested = true;
+
+        }
+    }
+
+    if (changed) updateFlag = true;
 }

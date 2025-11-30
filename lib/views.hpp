@@ -20,6 +20,13 @@ public:
     virtual ~IView() = default;
     virtual void render(LCDdisplay& lcd, TimeUtils& clock) = 0;
     virtual void handleInput(ButtonManager& buttons) = 0;
+
+
+    bool needsUpdate() const { return updateFlag; }
+    void resetUpdateFlag() { updateFlag = false; }
+
+protected:
+    bool updateFlag = true;
 };
 
 // ----------------- HomeView -----------------
@@ -53,4 +60,36 @@ public:
     void handleInput(ButtonManager& buttons) override;
     int getCursorIndex() const { return cursorIndex; }
     void setCursorIndex(int idx) { cursorIndex = idx; }
+};
+
+
+// ----------------- CreateAlarmView -----------------
+class CreateAlarmView : public IView {
+private:
+    LCDdisplay* lcdPtr;
+
+    int cursorIndex = 0;  // 0=hour, 1=minute, 2=save, 3=cancel
+    int hour = 7;
+    int minute = 30;
+
+    bool saveRequested = false;
+    bool cancelRequested = false;
+
+public:
+    CreateAlarmView(LCDdisplay* lcd)
+        : lcdPtr(lcd) {}
+
+    void render(LCDdisplay& lcd, TimeUtils& clock) override;
+    void handleInput(ButtonManager& buttons) override;
+
+    // Getters
+    int getHour() const { return hour; }
+    int getMinute() const { return minute; }
+
+    // Event flags for AlarmApp
+    bool isSaveRequested() const { return saveRequested; }
+    bool isCancelRequested() const { return cancelRequested; }
+
+    // Reset flags when entering view
+    void resetEvents() { saveRequested = false; cancelRequested = false; }
 };
