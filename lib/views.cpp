@@ -21,9 +21,11 @@ void HomeView::render(LCDdisplay& lcd, TimeUtils& clock) {
 }
 
 void HomeView::handleInput(ButtonManager& buttons) {
+    bool moved = false;
     if (buttons.is_pressedC()) {
-        // Acceso al menú (se puede cambiar la vista desde AlarmApp)
+        moved = true;
     }
+    if (moved) updateFlag = true;
 }
 
 // ----------------- ScrollableMenuView -----------------
@@ -163,4 +165,103 @@ void CreateAlarmView::handleInput(ButtonManager& buttons) {
     }
 
     if (changed) updateFlag = true;
+}
+
+// ----------------- ListAlarmsView -----------------
+void ListAlarmsView::render(LCDdisplay& lcd, TimeUtils& clock) {
+    lcd.clear();
+
+    // Case 1: NO ALARMS
+    if (alarms.empty()) {
+        lcd.goto_pos(0, 0);
+        lcd.print("NO ALARMS");
+
+        lcd.goto_pos(0, 1);
+        lcd.print(cursorIndex == 0 ? ">" : " ");
+        lcd.print("Back");
+        return;
+    }
+
+    // Number of entries: alarms + back option
+    int totalEntries = alarms.size() + 1;
+
+    // Show two visible lines
+    for (int i = 0; i < 2; ++i) {
+        int idx = firstVisibleIndex + i;
+        if (idx >= totalEntries) break;
+
+        lcd.goto_pos(0, i);
+
+        // Pointer
+        lcd.print(idx == cursorIndex ? ">" : " ");
+
+        if (idx < alarms.size()) {
+            // Show alarm time
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%02d:%02d", 
+                     alarms[idx].hour, alarms[idx].minute);
+            lcd.print(buf);
+        } else {
+            // Last entry → Back
+            lcd.print("Back");
+        }
+    }
+
+    // Scroll indicators
+    if (firstVisibleIndex > 0) {
+        lcd.goto_pos(15, 0);
+        lcd.print("^");
+    }
+
+    if (firstVisibleIndex + 2 < totalEntries) {
+        lcd.goto_pos(15, 1);
+        lcd.print("v");
+    }
+}
+
+
+void ListAlarmsView::handleInput(ButtonManager& buttons) {
+    updateRequested = false;
+
+    // Case 1: NO ALARMS
+    if (alarms.empty()) {
+        if (buttons.is_pressedC()) {
+            backRequested = true;
+            return;
+        }
+        return; // no scrolling possible
+    }
+
+    // Normal case: alarms exist
+    int totalEntries = alarms.size() + 1; // alarms + Back
+
+    bool changed = false;
+
+    if (buttons.is_pressedU() && cursorIndex > 0) {
+        cursorIndex--;
+        changed = true;
+    }
+    if (buttons.is_pressedD() && cursorIndex < totalEntries - 1) {
+        cursorIndex++;
+        changed = true;
+    }
+
+    // Scroll adjustment
+    if (cursorIndex < firstVisibleIndex) {
+        firstVisibleIndex = cursorIndex;
+        changed = true;
+    }
+    if (cursorIndex >= firstVisibleIndex + 2) {
+        firstVisibleIndex = cursorIndex - 1;
+        changed = true;
+    }
+
+    // OK pressed
+    if (buttons.is_pressedC()) {
+        if (cursorIndex == totalEntries - 1) {
+            backRequested = true; // user selected Back
+        }
+    }
+
+    if (changed) updateRequested = true;
 }

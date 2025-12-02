@@ -7,14 +7,19 @@ AlarmApp::AlarmApp(LCDdisplay& display, TimeUtils& clock, ButtonManager& buttons
     createAlarmView = std::make_unique<CreateAlarmView>(&lcd);
 
     std::vector<MenuOption> menuOpts = {
-        {"Set Alarm", [this](){ setView(View::CreateAlarm); }},
-        {"List Alarms", [](){ /* lógica list alarm */ }},
+        {"Create Alarm", [this](){ setView(View::CreateAlarm); }},
+        {"List Alarms", [this](){ setView(View::ListAlarms); }},
+        {"Delete Alarms", [](){ /* lógica list alarm */ }},
         {"Home", [this](){ setView(View::Home); }}
     };
     menuView = std::make_unique<ScrollableMenuView>(&lcd, menuOpts, 2);
+    listAlarmsView = std::make_unique<ListAlarmsView>(&lcd);
 }
 
 void AlarmApp::run() {
+    // Init with home view
+    setView(View::Home);
+
     while(true) {
 
         if (clock.checkAlarmTrigger(clock.now())) {
@@ -25,13 +30,10 @@ void AlarmApp::run() {
                 homeView->handleInput(buttons);
 
                 if (homeView->needsUpdate()) { // TODO: modify to update screen when time changes
-                    homeView->render(lcd, clock);
+                    setView(View::Menu);
                     homeView->resetUpdateFlag();
                 }
 
-                if (buttons.is_pressedC()) {
-                    setView(View::Menu);
-                }
                 break;
             case View::Menu:
                 menuView->handleInput(buttons);
@@ -56,6 +58,7 @@ void AlarmApp::run() {
                         createAlarmView->getMinute()
                     );
                     createAlarmView->resetEvents();
+                    listAlarmsView->setAlarms(clock.getAlarms());
                     setView(View::Menu);
                 }
 
@@ -65,7 +68,19 @@ void AlarmApp::run() {
                 }
 
                 break;
+            case View::ListAlarms:
+                listAlarmsView->handleInput(buttons);
 
+                if (listAlarmsView->needsUpdate()) {
+                    listAlarmsView->render(lcd, clock);
+                    listAlarmsView->resetUpdateFlag();
+                }
+
+                if (listAlarmsView->isBackRequested()) {
+                    listAlarmsView->resetBackRequest();
+                    setView(View::Menu);
+                }
+                break;
         }
         sleep_ms(10); // retardo pequeño para debouncing
     }
@@ -85,6 +100,10 @@ void AlarmApp::setView(View v) {
         case View::CreateAlarm:
             createAlarmView->resetUpdateFlag();
             createAlarmView->render(lcd, clock);
+            break;
+        case View::ListAlarms:
+            listAlarmsView->resetUpdateFlag();
+            listAlarmsView->render(lcd, clock);
             break;
         default:
             break;

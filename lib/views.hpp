@@ -93,3 +93,33 @@ public:
     // Reset flags when entering view
     void resetEvents() { saveRequested = false; cancelRequested = false; }
 };
+
+// ----------------- ListAlarmsView -----------------
+class ListAlarmsView : public IView {
+private:
+    LCDdisplay* lcdPtr;
+
+    std::vector<Alarm> alarms;
+
+    int cursorIndex = 0;        // cursor in the virtual list (alarms + Back)
+    int firstVisibleIndex = 0;  // top index shown on screen
+
+    bool updateRequested = true;
+    bool backRequested = false;
+
+public:
+    ListAlarmsView(LCDdisplay* lcd) : lcdPtr(lcd) {}
+
+    void setAlarms(const std::vector<Alarm>& list) {
+        alarms = list;
+    }
+
+    bool needsUpdate() const { return updateRequested; }
+    void resetUpdateFlag() { updateRequested = false; }
+
+    bool isBackRequested() const { return backRequested; }
+    void resetBackRequest() { backRequested = false; }
+
+    void render(LCDdisplay& lcd, TimeUtils& clock) override;
+    void handleInput(ButtonManager& buttons) override;
+};
