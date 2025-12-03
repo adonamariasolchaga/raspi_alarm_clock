@@ -228,6 +228,7 @@ void ListAlarmsView::handleInput(ButtonManager& buttons) {
     if (alarms.empty()) {
         if (buttons.is_pressedC()) {
             backRequested = true;
+            cursorIndex = 0;
             return;
         }
         return; // no scrolling possible
@@ -261,6 +262,8 @@ void ListAlarmsView::handleInput(ButtonManager& buttons) {
     if (buttons.is_pressedC()) {
         if (cursorIndex == totalEntries - 1) {
             backRequested = true; // user selected Back
+            cursorIndex = 0;
+            
         }
     }
 
