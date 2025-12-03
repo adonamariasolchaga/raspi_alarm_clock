@@ -3,16 +3,16 @@
 
 
 TimeUtils::TimeUtils(int year, int month, int day, int hour, int min, int sec) {
-    current_time.year = year;
-    current_time.month = month;
-    current_time.day = day;
-    current_time.hour = hour;
-    current_time.min = min;
-    current_time.sec = sec;
-    current_time.dotw = 0; // Set day of the week if needed
+    initial_time.year = year;
+    initial_time.month = month;
+    initial_time.day = day;
+    initial_time.hour = hour;
+    initial_time.min = min;
+    initial_time.sec = sec;
+    initial_time.dotw = 0; // Set day of the week if needed
 
     rtc_init();
-    rtc_set_datetime(&current_time);
+    rtc_set_datetime(&initial_time);
 }
 
 datetime_t TimeUtils::now() {

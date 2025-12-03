@@ -35,9 +35,12 @@ class HomeView : public IView {
 private:
     LCDdisplay* lcdPtr;
     TimeUtils* clock;
+    datetime_t lastRenderedTime;
 
 public:
-    HomeView(LCDdisplay* lcd, TimeUtils* clock) : lcdPtr(lcd), clock(clock) {}
+    HomeView(LCDdisplay* lcd, TimeUtils* clock)
+        : lcdPtr(lcd), clock(clock), lastRenderedTime(clock->now()) {}
+    bool secondElapsed();
     void render(LCDdisplay& lcd) override;
     void handleInput(ButtonManager& buttons) override;
 };

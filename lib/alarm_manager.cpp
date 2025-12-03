@@ -29,7 +29,9 @@ void AlarmApp::run() {
         switch(currentView) {
             case View::Home:
                 homeView->handleInput(buttons);
-
+                if (homeView->secondElapsed()) {
+                    homeView->render(lcd);
+                }
                 if (homeView->needsUpdate()) { // TODO: modify to update screen when time changes
                     setView(View::Menu);
                     homeView->resetUpdateFlag();

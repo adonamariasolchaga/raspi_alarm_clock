@@ -28,6 +28,15 @@ void HomeView::handleInput(ButtonManager& buttons) {
     if (moved) updateFlag = true;
 }
 
+bool HomeView::secondElapsed() {
+    datetime_t current = clock->now();
+    if (current.sec != lastRenderedTime.sec) {
+        lastRenderedTime = current;
+        return true;
+    }
+    return false;
+}
+
 // ----------------- ScrollableMenuView -----------------
 void ScrollableMenuView::render(LCDdisplay& lcd) {
     lcd.clear();

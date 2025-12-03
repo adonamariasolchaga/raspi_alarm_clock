@@ -18,6 +18,6 @@ public:
     void removeAlarm(int index);
 
 private:
-    datetime_t current_time;
+    datetime_t initial_time;
     std::vector<Alarm> alarms;
 };
