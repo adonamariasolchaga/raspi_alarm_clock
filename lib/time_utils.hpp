@@ -15,6 +15,7 @@ public:
     void addAlarm(int hour, int minute);
     const std::vector<Alarm>& getAlarms() const;
     bool checkAlarmTrigger(const datetime_t& t) const;
+    void removeAlarm(int index);
 
 private:
     datetime_t current_time;

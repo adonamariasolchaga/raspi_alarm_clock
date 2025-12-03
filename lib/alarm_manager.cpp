@@ -3,17 +3,18 @@
 
 
 AlarmApp::AlarmApp(LCDdisplay& display, TimeUtils& clock, ButtonManager& buttons) : lcd(display), currentView(View::Home), clock(clock), buttons(buttons) {
-    homeView = std::make_unique<HomeView>(&lcd);
-    createAlarmView = std::make_unique<CreateAlarmView>(&lcd);
+    homeView = std::make_unique<HomeView>(&lcd, &clock);
+    createAlarmView = std::make_unique<CreateAlarmView>(&lcd, &clock);
 
     std::vector<MenuOption> menuOpts = {
         {"Create Alarm", [this](){ setView(View::CreateAlarm); }},
         {"List Alarms", [this](){ setView(View::ListAlarms); }},
-        {"Delete Alarms", [](){ /* lógica list alarm */ }},
+        {"Delete Alarms", [this](){ setView(View::DeleteAlarms); }},
         {"Home", [this](){ setView(View::Home); }}
     };
-    menuView = std::make_unique<ScrollableMenuView>(&lcd, menuOpts, 2);
-    listAlarmsView = std::make_unique<ListAlarmsView>(&lcd);
+    menuView = std::make_unique<ScrollableMenuView>(&lcd, &clock, menuOpts, 2);
+    listAlarmsView = std::make_unique<ListAlarmsView>(&lcd, &clock);
+    deleteAlarmView = std::make_unique<DeleteAlarmView>(&lcd, &clock);
 }
 
 void AlarmApp::run() {
@@ -39,7 +40,7 @@ void AlarmApp::run() {
                 menuView->handleInput(buttons);
 
                 if (menuView->needsUpdate()) {
-                    menuView->render(lcd, clock);
+                    menuView->render(lcd);
                     menuView->resetUpdateFlag();
                 }
 
@@ -48,7 +49,7 @@ void AlarmApp::run() {
                 createAlarmView->handleInput(buttons);
 
                 if (createAlarmView->needsUpdate()) {
-                    createAlarmView->render(lcd, clock);
+                    createAlarmView->render(lcd);
                     createAlarmView->resetUpdateFlag();
                 }
 
@@ -58,7 +59,6 @@ void AlarmApp::run() {
                         createAlarmView->getMinute()
                     );
                     createAlarmView->resetEvents();
-                    listAlarmsView->setAlarms(clock.getAlarms());
                     setView(View::Menu);
                 }
 
@@ -72,12 +72,25 @@ void AlarmApp::run() {
                 listAlarmsView->handleInput(buttons);
 
                 if (listAlarmsView->needsUpdate()) {
-                    listAlarmsView->render(lcd, clock);
+                    listAlarmsView->render(lcd);
                     listAlarmsView->resetUpdateFlag();
                 }
 
                 if (listAlarmsView->isBackRequested()) {
                     listAlarmsView->resetBackRequest();
+                    setView(View::Menu);
+                }
+                break;
+            case View::DeleteAlarms:
+                deleteAlarmView->handleInput(buttons);
+
+                if (deleteAlarmView->needsUpdate()) {
+                    deleteAlarmView->render(lcd);
+                    deleteAlarmView->resetUpdateFlag();
+                }
+
+                if (deleteAlarmView->isBackRequested()) {
+                    deleteAlarmView->resetBackRequest();
                     setView(View::Menu);
                 }
                 break;
@@ -91,19 +104,23 @@ void AlarmApp::setView(View v) {
     switch(currentView) {
         case View::Home:
             homeView->resetUpdateFlag();
-            homeView->render(lcd, clock);
+            homeView->render(lcd);
             break;
         case View::Menu:
             menuView->resetUpdateFlag();
-            menuView->render(lcd, clock);
+            menuView->render(lcd);
             break;
         case View::CreateAlarm:
             createAlarmView->resetUpdateFlag();
-            createAlarmView->render(lcd, clock);
+            createAlarmView->render(lcd);
             break;
         case View::ListAlarms:
             listAlarmsView->resetUpdateFlag();
-            listAlarmsView->render(lcd, clock);
+            listAlarmsView->render(lcd);
+            break;
+        case View::DeleteAlarms:
+            deleteAlarmView->resetUpdateFlag();
+            deleteAlarmView->render(lcd);
             break;
         default:
             break;
@@ -111,5 +128,5 @@ void AlarmApp::setView(View v) {
 }
 
 void AlarmApp::render() {
-    views[currentView]->render(lcd, clock);
+    views[currentView]->render(lcd);
 }

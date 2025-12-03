@@ -12,13 +12,14 @@ enum class View {
     Home,
     Menu,
     CreateAlarm,
-    ListAlarms
+    ListAlarms,
+    DeleteAlarms,
 };
 
 class IView {
 public:
     virtual ~IView() = default;
-    virtual void render(LCDdisplay& lcd, TimeUtils& clock) = 0;
+    virtual void render(LCDdisplay& lcd) = 0;
     virtual void handleInput(ButtonManager& buttons) = 0;
 
 
@@ -33,9 +34,11 @@ protected:
 class HomeView : public IView {
 private:
     LCDdisplay* lcdPtr;
+    TimeUtils* clock;
+
 public:
-    HomeView(LCDdisplay* lcd) : lcdPtr(lcd) {}
-    void render(LCDdisplay& lcd, TimeUtils& clock) override;
+    HomeView(LCDdisplay* lcd, TimeUtils* clock) : lcdPtr(lcd), clock(clock) {}
+    void render(LCDdisplay& lcd) override;
     void handleInput(ButtonManager& buttons) override;
 };
 
@@ -49,14 +52,15 @@ struct MenuOption {
 class ScrollableMenuView : public IView {
 private:
     LCDdisplay* lcdPtr;
+    TimeUtils* clock;
     std::vector<MenuOption> options;
     int cursorIndex = 0;
     int firstVisibleIndex = 0;
     int noLines;
 public:
-    ScrollableMenuView(LCDdisplay* lcd, std::vector<MenuOption> opts, int lines)
-        : lcdPtr(lcd), options(opts), noLines(lines) {}
-    void render(LCDdisplay& lcd, TimeUtils& clock) override;
+    ScrollableMenuView(LCDdisplay* lcd,  TimeUtils* clock, std::vector<MenuOption> opts, int lines)
+        : lcdPtr(lcd), clock(clock), options(opts), noLines(lines) {}
+    void render(LCDdisplay& lcd) override;
     void handleInput(ButtonManager& buttons) override;
     int getCursorIndex() const { return cursorIndex; }
     void setCursorIndex(int idx) { cursorIndex = idx; }
@@ -67,6 +71,7 @@ public:
 class CreateAlarmView : public IView {
 private:
     LCDdisplay* lcdPtr;
+    TimeUtils* clock;
 
     int cursorIndex = 0;  // 0=hour, 1=minute, 2=save, 3=cancel
     int hour = 7;
@@ -76,10 +81,10 @@ private:
     bool cancelRequested = false;
 
 public:
-    CreateAlarmView(LCDdisplay* lcd)
-        : lcdPtr(lcd) {}
+    CreateAlarmView(LCDdisplay* lcd, TimeUtils* clock)
+        : lcdPtr(lcd), clock(clock) {}
 
-    void render(LCDdisplay& lcd, TimeUtils& clock) override;
+    void render(LCDdisplay& lcd) override;
     void handleInput(ButtonManager& buttons) override;
 
     // Getters
@@ -98,8 +103,7 @@ public:
 class ListAlarmsView : public IView {
 private:
     LCDdisplay* lcdPtr;
-
-    std::vector<Alarm> alarms;
+    TimeUtils* clock;
 
     int cursorIndex = 0;        // cursor in the virtual list (alarms + Back)
     int firstVisibleIndex = 0;  // top index shown on screen
@@ -108,11 +112,7 @@ private:
     bool backRequested = false;
 
 public:
-    ListAlarmsView(LCDdisplay* lcd) : lcdPtr(lcd) {}
-
-    void setAlarms(const std::vector<Alarm>& list) {
-        alarms = list;
-    }
+    ListAlarmsView(LCDdisplay* lcd, TimeUtils* clock) : lcdPtr(lcd), clock(clock) {}
 
     bool needsUpdate() const { return updateRequested; }
     void resetUpdateFlag() { updateRequested = false; }
@@ -120,6 +120,34 @@ public:
     bool isBackRequested() const { return backRequested; }
     void resetBackRequest() { backRequested = false; }
 
-    void render(LCDdisplay& lcd, TimeUtils& clock) override;
+    void render(LCDdisplay& lcd) override;
+    void handleInput(ButtonManager& buttons) override;
+};
+
+// ----------------- DeleteAlarmView -----------------
+class DeleteAlarmView : public IView {
+private:
+    LCDdisplay* lcdPtr;
+    TimeUtils* clock;
+
+    int cursorIndex = 0;
+    int firstVisibleIndex = 0;
+
+    bool updateRequested = true;
+    bool backRequested = false;
+
+    bool confirming = false;   // true = showing YES/NO window
+    int confirmChoice = 0;     // 0 = Yes, 1 = No
+
+public:
+    DeleteAlarmView(LCDdisplay* lcd, TimeUtils* clock) : lcdPtr(lcd), clock(clock) {}
+
+    bool needsUpdate() const { return updateRequested; }
+    void resetUpdateFlag() { updateRequested = false; }
+
+    bool isBackRequested() const { return backRequested; }
+    void resetBackRequest() { backRequested = false; }
+
+    void render(LCDdisplay& lcd) override;
     void handleInput(ButtonManager& buttons) override;
 };

@@ -29,6 +29,12 @@ const std::vector<Alarm>& TimeUtils::getAlarms() const {
     return alarms;
 }
 
+void TimeUtils::removeAlarm(int index) {
+    if (index >= 0 && index < (int)alarms.size()) {
+        alarms.erase(alarms.begin() + index);
+    }
+}
+
 bool TimeUtils::checkAlarmTrigger(const datetime_t& t) const {
     for (const auto& a : alarms) {
         if (t.hour == a.hour && t.min == a.minute) {

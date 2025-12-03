@@ -24,4 +24,5 @@ private:
     std::unique_ptr<ScrollableMenuView> menuView;
     std::unique_ptr<CreateAlarmView> createAlarmView;
     std::unique_ptr<ListAlarmsView> listAlarmsView;
+    std::unique_ptr<DeleteAlarmView> deleteAlarmView;
 };

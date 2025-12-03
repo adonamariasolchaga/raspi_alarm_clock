@@ -3,9 +3,9 @@
 
 
 // ----------------- HomeView -----------------
-void HomeView::render(LCDdisplay& lcd, TimeUtils& clock) {
+void HomeView::render(LCDdisplay& lcd) {
     lcd.clear();
-    datetime_t current = clock.now();
+    datetime_t current = clock->now();
     char buf[10];
     snprintf(buf, sizeof(buf), "%02d:%02d:%02d", current.hour, current.min, current.sec);
 
@@ -29,7 +29,7 @@ void HomeView::handleInput(ButtonManager& buttons) {
 }
 
 // ----------------- ScrollableMenuView -----------------
-void ScrollableMenuView::render(LCDdisplay& lcd, TimeUtils& clock) {
+void ScrollableMenuView::render(LCDdisplay& lcd) {
     lcd.clear();
     for (int i = 0; i < noLines; ++i) {
         int optIndex = firstVisibleIndex + i;
@@ -72,7 +72,7 @@ void ScrollableMenuView::handleInput(ButtonManager& buttons) {
     if (moved) updateFlag = true;
 }
 
-void CreateAlarmView::render(LCDdisplay& lcd, TimeUtils& clock) {
+void CreateAlarmView::render(LCDdisplay& lcd) {
     lcd.clear();
 
     // There are 4 items: 0=Hour, 1=Minute, 2=Save, 3=Cancel
@@ -168,17 +168,16 @@ void CreateAlarmView::handleInput(ButtonManager& buttons) {
 }
 
 // ----------------- ListAlarmsView -----------------
-void ListAlarmsView::render(LCDdisplay& lcd, TimeUtils& clock) {
+void ListAlarmsView::render(LCDdisplay& lcd) {
     lcd.clear();
-
+    std::vector<Alarm> alarms = clock->getAlarms();
     // Case 1: NO ALARMS
     if (alarms.empty()) {
         lcd.goto_pos(0, 0);
         lcd.print("NO ALARMS");
 
         lcd.goto_pos(0, 1);
-        lcd.print(cursorIndex == 0 ? ">" : " ");
-        lcd.print("Back");
+        lcd.print(">Back");
         return;
     }
 
@@ -223,6 +222,8 @@ void ListAlarmsView::render(LCDdisplay& lcd, TimeUtils& clock) {
 void ListAlarmsView::handleInput(ButtonManager& buttons) {
     updateRequested = false;
 
+    std::vector<Alarm> alarms = clock->getAlarms();
+
     // Case 1: NO ALARMS
     if (alarms.empty()) {
         if (buttons.is_pressedC()) {
@@ -261,6 +262,144 @@ void ListAlarmsView::handleInput(ButtonManager& buttons) {
         if (cursorIndex == totalEntries - 1) {
             backRequested = true; // user selected Back
         }
+    }
+
+    if (changed) updateRequested = true;
+}
+
+// ----------------- DeleteAlarmView -----------------
+void DeleteAlarmView::render(LCDdisplay& lcd) {
+    lcd.clear();
+    std::vector<Alarm> alarms = clock->getAlarms();
+
+    // --- Confirmation window ---
+    if (confirming) {
+        lcd.goto_pos(0, 0);
+        lcd.print("Delete?");
+        lcd.goto_pos(0, 1);
+        lcd.print(confirmChoice == 0 ? ">Yes" : " Yes");
+        lcd.print(confirmChoice == 1 ? " >No" : "  No");
+        return;
+    }
+
+    // --- Normal list mode ---
+    if (alarms.empty()) {
+        lcd.goto_pos(0, 0);
+        lcd.print("NO ALARMS");
+
+        lcd.goto_pos(0, 1);
+        lcd.print(cursorIndex == 0 ? ">" : " ");
+        lcd.print("Back");
+        return;
+    }
+
+    int totalEntries = alarms.size() + 1;
+
+    for (int i = 0; i < 2; ++i) {
+        int idx = firstVisibleIndex + i;
+        if (idx >= totalEntries) break;
+
+        lcd.goto_pos(0, i);
+        lcd.print(idx == cursorIndex ? ">" : " ");
+
+        if (idx < alarms.size()) {
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%02d:%02d",
+                     alarms[idx].hour, alarms[idx].minute);
+            lcd.print(buf);
+        } else {
+            lcd.print("Back");
+        }
+    }
+
+    if (firstVisibleIndex > 0) {
+        lcd.goto_pos(15, 0);
+        lcd.print("^");
+    }
+
+    if (firstVisibleIndex + 2 < totalEntries) {
+        lcd.goto_pos(15, 1);
+        lcd.print("v");
+    }
+}
+
+
+void DeleteAlarmView::handleInput(ButtonManager& buttons) {
+    updateRequested = false;
+    std::vector<Alarm> alarms = clock->getAlarms();
+
+    // -------- CONFIRMATION MODE --------
+    if (confirming) {
+        bool changed = false;
+
+        if (buttons.is_pressedL() && confirmChoice > 0) {
+            confirmChoice = 0;
+            changed = true;
+        }
+        if (buttons.is_pressedR() && confirmChoice < 1) {
+            confirmChoice = 1;
+            changed = true;
+        }
+
+        if (buttons.is_pressedC()) {
+            if (confirmChoice == 0) {
+                // --- YES: delete alarm ---
+                // Delete from global alarm list
+                clock->removeAlarm(cursorIndex);
+
+                // Fix cursor if needed
+                if (cursorIndex >= (int)alarms.size())
+                    cursorIndex = alarms.empty() ? 0 : alarms.size() - 1;
+
+                firstVisibleIndex = 0;
+            }
+
+            // Exit confirmation window regardless of choice
+            confirming = false;
+            changed = true;
+        }
+
+        if (changed) updateRequested = true;
+        return;
+    }
+
+    // -------- NORMAL LIST MODE --------
+    if (alarms.empty()) {
+        if (buttons.is_pressedC()) {
+            backRequested = true;
+        }
+        return;
+    }
+
+    int totalEntries = alarms.size() + 1;
+    bool changed = false;
+
+    if (buttons.is_pressedU() && cursorIndex > 0) {
+        cursorIndex--;
+        changed = true;
+    }
+    if (buttons.is_pressedD() && cursorIndex < totalEntries - 1) {
+        cursorIndex++;
+        changed = true;
+    }
+
+    if (cursorIndex < firstVisibleIndex) {
+        firstVisibleIndex = cursorIndex;
+        changed = true;
+    }
+    if (cursorIndex >= firstVisibleIndex + 2) {
+        firstVisibleIndex = cursorIndex - 1;
+        changed = true;
+    }
+
+    if (buttons.is_pressedC()) {
+        if (cursorIndex == totalEntries - 1) {
+            backRequested = true;  // Back selected
+        } else {
+            confirming = true;
+            confirmChoice = 0; // default to YES
+        }
+        changed = true;
     }
 
     if (changed) updateRequested = true;
