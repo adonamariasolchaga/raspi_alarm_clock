@@ -4,6 +4,10 @@
 #include "time_utils.hpp"
 
 int main() {
+    // Initialize onboard LED for debugging
+    gpio_init(25);
+    gpio_set_dir(25, GPIO_OUT);
+
     // Create the display object
     LCDdisplay lcd(2, 3, 4, 5, 14, 15, 16, 2);
     lcd.init();

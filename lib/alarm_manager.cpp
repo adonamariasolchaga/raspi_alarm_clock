@@ -23,8 +23,12 @@ void AlarmApp::run() {
 
     while(true) {
 
-        if (clock.checkAlarmTrigger(clock.now())) {
-            // TODO: trigger buzzer / LED / Alarm screen
+        bool alarmActive = clock.checkAlarmTrigger(clock.now());
+
+        if (alarmActive) {
+            gpio_put(25, 1);   // turn ON LED
+        } else {
+            gpio_put(25, 0);   // turn OFF LED
         }
         switch(currentView) {
             case View::Home:
