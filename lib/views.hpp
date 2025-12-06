@@ -14,6 +14,7 @@ enum class View {
     CreateAlarm,
     ListAlarms,
     DeleteAlarms,
+    AlarmTriggered,
 };
 
 class IView {
@@ -153,4 +154,28 @@ public:
 
     void render(LCDdisplay& lcd) override;
     void handleInput(ButtonManager& buttons) override;
+};
+
+// ----------------- AlarmTriggeredView -----------------
+class AlarmTriggeredView : public IView {
+private:
+    LCDdisplay* lcdPtr;
+    TimeUtils* clock;
+    bool changed = true;
+    bool visible = true;        // for blinking
+    bool firstRender = true;
+    datetime_t triggerTime;
+
+public:
+    AlarmTriggeredView(LCDdisplay* lcd, TimeUtils* clock) : lcdPtr(lcd), clock(clock) {}
+
+    void setTriggerTime(const datetime_t& t) { triggerTime = t; }
+
+    void render(LCDdisplay& lcd) override;
+    void handleInput(ButtonManager& buttons) override;
+
+    bool needsUpdate() const { return changed; }
+    void resetUpdateFlag() { changed = false; }
+    void reset();
+
 };

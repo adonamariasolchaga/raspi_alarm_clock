@@ -15,6 +15,7 @@ AlarmApp::AlarmApp(LCDdisplay& display, TimeUtils& clock, ButtonManager& buttons
     menuView = std::make_unique<ScrollableMenuView>(&lcd, &clock, menuOpts, 2);
     listAlarmsView = std::make_unique<ListAlarmsView>(&lcd, &clock);
     deleteAlarmView = std::make_unique<DeleteAlarmView>(&lcd, &clock);
+    alarmTriggeredView = std::make_unique<AlarmTriggeredView>(&lcd, &clock);
 }
 
 void AlarmApp::run() {
@@ -23,13 +24,18 @@ void AlarmApp::run() {
 
     while(true) {
 
-        bool alarmActive = clock.checkAlarmTrigger(clock.now());
+        // Check if any alarm is triggered
+        datetime_t now = clock.now();
+        if (clock.checkAlarmTrigger(now) && currentView != View::AlarmTriggered)
+        {
+            // Light alarm indicator if needed
+            gpio_put(25, 1);
 
-        if (alarmActive) {
-            gpio_put(25, 1);   // turn ON LED
-        } else {
-            gpio_put(25, 0);   // turn OFF LED
+            alarmTriggeredView->setTriggerTime(now);
+            setView(View::AlarmTriggered);
         }
+
+        // Handle view interaction logic
         switch(currentView) {
             case View::Home:
                 homeView->handleInput(buttons);
@@ -100,6 +106,19 @@ void AlarmApp::run() {
                     setView(View::Menu);
                 }
                 break;
+            case View::AlarmTriggered:
+
+                alarmTriggeredView->render(lcd);
+
+                // Stop alarm if any button pressed
+                if (buttons.anyPressed()) {
+                    gpio_put(25, 0);                // Light off
+                    clock.pauseTriggeredAlarms();
+                    alarmTriggeredView->reset();
+                    setView(View::Home);
+                }
+
+                break;
         }
         sleep_ms(10); // retardo pequeño para debouncing
     }
@@ -127,6 +146,9 @@ void AlarmApp::setView(View v) {
         case View::DeleteAlarms:
             deleteAlarmView->resetUpdateFlag();
             deleteAlarmView->render(lcd);
+            break;
+        case View::AlarmTriggered:
+            alarmTriggeredView->render(lcd);
             break;
         default:
             break;

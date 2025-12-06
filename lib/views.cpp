@@ -416,3 +416,56 @@ void DeleteAlarmView::handleInput(ButtonManager& buttons) {
 
     if (changed) updateRequested = true;
 }
+
+// ----------------- AlarmTriggeredView -----------------
+void AlarmTriggeredView::render(LCDdisplay& lcd)
+{
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%02d:%02d", triggerTime.hour, triggerTime.min);
+
+    // FIRST TIME entering this view → clear whole screen once
+    if (firstRender)
+    {
+        lcd.clear();
+
+        // Print static second line
+        lcd.goto_pos(0, 1);
+        lcd.print("PRESS ANY BTN");
+
+        firstRender = false;   // Next render will not clear
+    }
+
+    // --- Update ONLY the first line (blink) ---
+    lcd.goto_pos(0, 0);
+    lcd.print("                ");  // Clear first line (16 spaces)
+
+    if (visible)
+    {
+        lcd.goto_pos(0, 0);
+        lcd.print("ALARM !! - ");
+        lcd.print(buf);
+    }
+
+    // Toggle blinking state
+    visible = !visible;
+}
+
+void AlarmTriggeredView::handleInput(ButtonManager& buttons)
+{
+    // If ANY button pressed → exit
+    if (buttons.is_pressedU() ||
+        buttons.is_pressedD() ||
+        buttons.is_pressedL() ||
+        buttons.is_pressedR() ||
+        buttons.is_pressedC())
+    {
+        // App will handle leaving the view
+        changed = true;
+    }
+}
+
+void AlarmTriggeredView::reset()
+{
+    firstRender = true;
+    visible = true;
+}

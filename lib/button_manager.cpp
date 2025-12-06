@@ -49,3 +49,7 @@ bool ButtonManager::is_pressedR() {
 bool ButtonManager::is_pressedC() {
     return gpio_get(pin_ok) == 0;
 }
+
+bool ButtonManager::anyPressed() {
+    return is_pressedU() || is_pressedD() || is_pressedL() || is_pressedR() || is_pressedC();
+}

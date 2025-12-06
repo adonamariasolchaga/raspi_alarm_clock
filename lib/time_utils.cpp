@@ -22,7 +22,7 @@ datetime_t TimeUtils::now() {
 }
 
 void TimeUtils::addAlarm(int hour, int minute) {
-    alarms.push_back({hour, minute});
+    alarms.push_back({hour, minute, false});
 }
 
 const std::vector<Alarm>& TimeUtils::getAlarms() const {
@@ -35,11 +35,34 @@ void TimeUtils::removeAlarm(int index) {
     }
 }
 
-bool TimeUtils::checkAlarmTrigger(const datetime_t& t) const {
-    for (const auto& a : alarms) {
-        if (t.hour == a.hour && t.min == a.minute) {
-            return true;
+bool TimeUtils::checkAlarmTrigger(const datetime_t& now)
+{
+    for (auto& alarm : alarms)
+    {
+        if (!alarm.triggered &&
+            !alarm.paused &&
+            now.hour == alarm.hour &&
+            now.min  == alarm.minute)
+        {
+            alarm.triggered = true;  // <-- Mark as triggered
+            return true;             // Fire alarm ONCE
+        }
+        
+        // Reset pause and trigger at a new minute
+        if (now.min != alarm.minute || now.hour != alarm.hour)
+        {
+            alarm.paused = false;
+            alarm.triggered = false;
         }
     }
     return false;
+}
+
+void TimeUtils::pauseTriggeredAlarms()
+{
+    for (auto& alarm : alarms)
+    {
+        if (alarm.triggered)
+            alarm.paused = true;
+    }
 }

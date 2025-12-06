@@ -10,6 +10,7 @@ public:
     bool is_pressedL();
     bool is_pressedR();
     bool is_pressedC();
+    bool anyPressed();
 
 private:
     uint up_pin;

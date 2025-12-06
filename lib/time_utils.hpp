@@ -5,6 +5,8 @@
 struct Alarm {
     int hour;
     int minute;
+    bool triggered = false;
+    bool paused = false;
 };
 
 class TimeUtils {
@@ -14,8 +16,9 @@ public:
 
     void addAlarm(int hour, int minute);
     const std::vector<Alarm>& getAlarms() const;
-    bool checkAlarmTrigger(const datetime_t& t) const;
+    bool checkAlarmTrigger(const datetime_t& now);
     void removeAlarm(int index);
+    void pauseTriggeredAlarms();
 
 private:
     datetime_t initial_time;
