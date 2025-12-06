@@ -128,6 +128,7 @@ void AlarmApp::setView(View v) {
     currentView = v;
     switch(currentView) {
         case View::Home:
+            homeView-> reset();
             homeView->resetUpdateFlag();
             homeView->render(lcd);
             break;

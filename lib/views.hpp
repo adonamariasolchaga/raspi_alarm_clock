@@ -37,6 +37,8 @@ private:
     LCDdisplay* lcdPtr;
     TimeUtils* clock;
     datetime_t lastRenderedTime;
+    bool secondLineDrawn = false;
+    char lastPrinted[10] = "00:00:00";
 
 public:
     HomeView(LCDdisplay* lcd, TimeUtils* clock)
@@ -44,6 +46,7 @@ public:
     bool secondElapsed();
     void render(LCDdisplay& lcd) override;
     void handleInput(ButtonManager& buttons) override;
+    void reset() { secondLineDrawn = false; }
 };
 
 

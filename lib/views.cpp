@@ -3,21 +3,41 @@
 
 
 // ----------------- HomeView -----------------
-void HomeView::render(LCDdisplay& lcd) {
-    lcd.clear();
+void HomeView::render(LCDdisplay& lcd)
+{
     datetime_t current = clock->now();
     char buf[10];
     snprintf(buf, sizeof(buf), "%02d:%02d:%02d", current.hour, current.min, current.sec);
 
-    lcd.goto_pos(4,0);
-    lcd.print(buf);
+    // Clear all and draw secon line only on forst render
+    if (!secondLineDrawn)
+    {
+        lcd.clear();
+        lcd.goto_pos(11, 1);
+        lcd.print(">Menu");
+        secondLineDrawn = true;
+        lcd.goto_pos(4, 0);
+        lcd.print(buf);
+    }
 
-    // Botón "M" para acceder al menú
-    lcd.goto_pos(15, 1);
-    lcd.print("M");
-    // Cursor delante de "M"
-    lcd.goto_pos(14, 1);
-    lcd.print(">");
+    // Update only FIRST LINE
+    // Write ONLY digits that changed
+    // Time starts at column 4 on line 0
+    const int baseCol = 4;
+
+    for (int i = 0; i < 8; i++)
+    {
+        if (buf[i] != lastPrinted[i])
+        {
+            lcd.goto_pos(baseCol + i, 0);
+            char oneChar[2] = { buf[i], '\0' };
+            lcd.print(oneChar);
+        }
+    }
+
+    // Store for next comparison
+    std::copy(buf, buf + 9, lastPrinted);
+    lastPrinted[8] = '\0';
 }
 
 void HomeView::handleInput(ButtonManager& buttons) {
