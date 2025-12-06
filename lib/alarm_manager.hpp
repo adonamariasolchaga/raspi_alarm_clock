@@ -3,6 +3,7 @@
 #include "button_manager.hpp"
 #include "time_utils.hpp"
 #include "views.hpp"
+#include "buzzer.hpp"
 #include <map>
 #include <memory>
 
@@ -26,4 +27,6 @@ private:
     std::unique_ptr<ListAlarmsView> listAlarmsView;
     std::unique_ptr<DeleteAlarmView> deleteAlarmView;
     std::unique_ptr<AlarmTriggeredView> alarmTriggeredView;
+    std::unique_ptr<Buzzer> buzzer;
+
 };

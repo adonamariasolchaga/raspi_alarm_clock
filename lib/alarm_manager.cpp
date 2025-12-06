@@ -16,6 +16,7 @@ AlarmApp::AlarmApp(LCDdisplay& display, TimeUtils& clock, ButtonManager& buttons
     listAlarmsView = std::make_unique<ListAlarmsView>(&lcd, &clock);
     deleteAlarmView = std::make_unique<DeleteAlarmView>(&lcd, &clock);
     alarmTriggeredView = std::make_unique<AlarmTriggeredView>(&lcd, &clock);
+    buzzer = std::make_unique<Buzzer>(16);
 }
 
 void AlarmApp::run() {
@@ -30,6 +31,8 @@ void AlarmApp::run() {
         {
             // Light alarm indicator if needed
             gpio_put(25, 1);
+            // Start buzzer
+            buzzer->on();
 
             alarmTriggeredView->setTriggerTime(now);
             setView(View::AlarmTriggered);
@@ -113,6 +116,7 @@ void AlarmApp::run() {
                 // Stop alarm if any button pressed
                 if (buttons.anyPressed()) {
                     gpio_put(25, 0);                // Light off
+                    buzzer->off();              // Stop buzzer
                     clock.pauseTriggeredAlarms();
                     alarmTriggeredView->reset();
                     setView(View::Home);
