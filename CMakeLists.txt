@@ -14,6 +14,7 @@ add_executable(alarm_clock
     lib/views.cpp
     lib/button_manager.cpp
     lib/buzzer.cpp
+    lib/initial_setup_view.cpp
 )
 
 target_include_directories(alarm_clock PRIVATE
