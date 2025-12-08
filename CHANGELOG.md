@@ -14,6 +14,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [3.0.0] - 2025-12-08
+
+### Added
+
+- Add `initial_setup_view` module in order to set the initial time for the alarm.
+- Add `alarm_clock_v3_0_0.uf2` binary file with the new released version.
+
+### Changed
+
+- Change `src/main.cpp` entry point to launch the initial date/time setting view before launching the `run()` method.
+
 ## [2.0.0] - 2025-12-06
 
 ### Added
