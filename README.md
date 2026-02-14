@@ -1,5 +1,8 @@
 # Raspberry Pi Pico Alarm Clock
 
+## Electric Scheme
+![Electric Scheme](docs/electric_scheme.png)
+
 ## Build and Flash Instructions
 
 ### 1. Prerequisites
